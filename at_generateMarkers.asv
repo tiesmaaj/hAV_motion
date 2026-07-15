@@ -1,0 +1,97 @@
+function [markers] = at_generateMarkers(data_output, ii, EEG_nature, block)
+% Create marker for EEG
+% if EEG_nature == 1 && ~contains('AV', block)
+%     dir_id = num2str(data_output(ii,3));
+%     dir_id = sprintf('00%s', dir_id);
+%     coh = data_output(ii,4);
+%     coh = coh*100;
+%     if coh == 100
+%         coh_id = num2str(coh);
+%     else
+%         coh_id = num2str(coh);
+%         coh_id = sprintf('0%s', coh_id);
+%     end
+%     markers = strcat([dir_id coh_id]); % unique identifier for LSL
+% elseif EEG_nature == 1 && contains('AV', block)
+%     auddir_id = num2str(data_output(ii,1));
+%     audcoh_id = num2str(data_output(ii,2));d
+%     visdir_id = num2str(data_output(ii,3));
+%     viscoh_id = num2str(data_output(ii,4));
+%     markers = strcat([auddir_id audcoh_id visdir_id viscoh_id]); %unique identifier for LSL
+% else
+%     markers = NaN; % needed for function at_presentDot
+% end
+
+vo_trial = isnan(data_output(ii,1)) && ~isnan(data_output(ii,3));
+ao_trial = ~isnan(data_output(ii,1)) && isnan(data_output(ii,3));
+av_trial = ~isnan(data_output(ii,1)) && ~isnan(data_output(ii,3));
+
+lowcoh_trial = data_output(ii,2) < 0.5 || data_output(ii,4) < 0.5;
+highcoh_trial = data_output(ii,2) >= 0.5 || data_output(ii,4) >= 0.5;
+
+cong_trial = av_trial && (data_output(ii,1) == data_output(ii,3));
+incong_trial = av_trial && (data_output(ii,1) ~= data_output(ii,3));
+
+right_trial = data_output(ii, 1) == 1 || data_output(ii, 3) == 1;
+left_trial = data_output(ii, 1) == 2 || data_output(ii, 3) == 2;
+
+ao_catch_trial = data_output(ii,2)==0;
+vo_catch_trial = data_output(ii,4)==0;
+
+if incong_trial && data_output(ii, 1) == 1
+    left_trial = true;
+    right_trial = false;
+elseif incong_trial && data_output(ii, 1) == 2
+    left_trial = false;
+    right_trial = true;
+end
+
+
+    if ao_catch_trial && ao_trial
+        markers = '01';
+    elseif vo_catch_trial && vo_trial
+        markers = '02';
+    elseif (ao_catch_trial && vo_catch_trial) && av_trial
+        markers = '03';
+    elseif (vo_trial && lowcoh_trial) && right_trial
+        markers = '04';
+    elseif (vo_trial && lowcoh_trial) && left_trial
+        markers = '05';
+    elseif (vo_trial && highcoh_trial) && right_trial
+        markers = '06';
+    elseif (vo_trial && highcoh_trial) && left_trial
+        markers = '07';
+    elseif (ao_trial && lowcoh_trial) && right_trial
+        markers = '08';
+    elseif (ao_trial && lowcoh_trial) && left_trial
+        markers = '09';
+    elseif ao_trial && highcoh_trial && right_trial
+        markers = '10';
+    elseif (ao_trial && highcoh_trial) && left_trial
+        markers = '11';
+    elseif (cong_trial && lowcoh_trial) && right_trial
+        markers = '12';
+    elseif (cong_trial && lowcoh_trial) && left_trial
+        markers = '13';
+    elseif (cong_trial && highcoh_trial) && right_trial
+        markers = '14';
+    elseif (cong_trial && highcoh_trial) && left_trial
+        markers = '15';
+    elseif (incong_trial && lowcoh_trial) && right_trial
+        markers = '16';
+    elseif (incong_trial && lowcoh_trial) && left_trial
+        markers = '17';
+    elseif (incong_trial && highcoh_trial) && right_trial
+        markers = '18';
+    elseif (incong_trial && highcoh_trial) && left_trial
+        markers = '19';
+    else 
+        markers = 'NaN';
+    end
+end
+    
+%if data_output(ii,1) == data_output(ii,3)
+    %markers = '10';
+%elseif data_output(ii,1) ~= data_output(ii,3)
+    %markers = '20';
+%end
